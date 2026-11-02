@@ -1,84 +1,50 @@
-# Gene Expression & Hypoxia Classification
+# Hypoxia Classification from Single-Cell RNA-seq
 
-Group project for the *AI Lab* course, Bocconi University (2025). My main responsibility was the unsupervised analysis: dimensionality reduction (PCA, t-SNE) and clustering (K-means, agglomerative, Gaussian mixtures, DBSCAN, spectral), evaluated against the hypoxia labels with the adjusted Rand index, silhouette scores and contingency tables.
+**Can hypoxic and normoxic cancer cells be told apart from their gene expression alone?**
 
-This project investigates whether **hypoxic** (low oxygen) and **normoxic** cells can be distinguished using single-cell RNA sequencing data and machine learning approaches.
+Group project for the *AI Lab* course, Bocconi University (2025). My main responsibility was the unsupervised analysis.
 
----
+<p align="center">
+  <img src="assets/pca_mcf7_smartseq.png" width="520" alt="First two principal components of MCF7 Smart-seq cells, coloured by condition">
+</p>
+<p align="center"><sub>MCF7 cells sequenced with Smart-seq, projected on the first two principal components.</sub></p>
 
-## 📖 Project Description
+## Background
 
-The datasets come from two human breast cancer cell lines:
-- **MCF7** → luminal subtype  
-- **HCC1806** → basal subtype  
+Hypoxia, a shortage of oxygen in the tumour microenvironment, promotes cancer progression and resistance to treatment, so identifying hypoxic cells matters clinically. The data cover two breast-cancer cell lines, **MCF7** (luminal) and **HCC1806** (basal), each sequenced with two single-cell technologies: **Smart-seq** (plate-based, full-length transcripts, a few hundred cells) and **Drop-seq** (droplet-based, roughly 14,000–21,000 cells). Each of the four datasets comes in unfiltered, filtered and normalised versions.
 
-Data were generated with two scRNA-seq technologies:
-- **Smart-seq** (plate-based, full-length transcripts)
-- **Drop-seq** (droplet-based, high throughput)
+## Analysis
 
-For each combination, three dataset versions are provided:
-1. **Unfiltered** → raw count matrices, no preprocessing.  
-2. **Filtered** → low-quality cells/genes removed.  
-3. **Normalized** → systematic biases corrected for comparability.  
+**1. Exploratory analysis.** Sparsity, distribution of counts per cell and per gene, outliers, skewness and kurtosis, log transformation, normalisation and duplicate checks.
 
-- *Unfiltered* data allow quality exploration and raw structure analysis.  
-- *Filtered/normalized* datasets are the main inputs for machine learning.  
+**2. Unsupervised learning** (my part). Do the two conditions emerge on their own as clusters?
+- Dimensionality reduction with PCA (2D and 3D) and t-SNE.
+- Clustering with K-means, agglomerative clustering (single, complete, average and Ward linkage), Gaussian mixtures (four covariance types), DBSCAN and spectral clustering, on the full data and on the PCA projections.
+- Evaluation against the true labels with the adjusted Rand index (ARI), silhouette scores and contingency tables.
 
----
+**3. Supervised learning.** Logistic regression, k-NN, SVM, Random Forest and MLP in leakage-safe pipelines, with 5-fold cross-validation and a hold-out set; Random Forest feature importance to select the 50 most informative genes per dataset; cross-dataset transfer (train on one dataset, test on the others); a pooled classifier on the genes shared by all datasets; and a tuned best-in-class model for each dataset, used to label anonymised external test data.
 
-## 🔬 Methodology
+## Findings
 
-### 1. **Unsupervised Learning**
-- PCA (2D/3D projections)
-- Clustering (KMeans and others)  
-→ To assess whether hypoxic vs normoxic cells naturally form distinct groups.
+- **Structure is clearest in Smart-seq data.** For MCF7 Smart-seq the two conditions separate along the first principal component, and spectral clustering on two components recovers them with ARI 0.95; K-means, Ward linkage and Gaussian mixtures also align well with the labels. For HCC1806 Smart-seq only spectral clustering recovers them. On the much larger and sparser Drop-seq data, clusters are often geometrically compact (high silhouette) yet mostly unrelated to the conditions (ARI near zero).
+- **A few dozen genes suffice.** Within each dataset the best classifiers exceed 95% hold-out accuracy, and restricting them to the top 50 genes preserves or improves performance. The top-ranked genes include canonical hypoxia markers such as *CA9*, *NDRG1*, *BNIP3*, *DDIT4* and *PGK1*.
+- **Transfer across domains is harder.** Models trained on one Drop-seq cell line reach only 56–71% accuracy on the other, while a Random Forest trained on a balanced pool of all four datasets, using the 70 genes they share, reaches 87% accuracy (ROC AUC 0.96).
 
-### 2. **Supervised Learning**
-- Preprocessing: filtering, normalization, standardization  
-- Algorithms trained:  
-  - Logistic Regression  
-  - k-Nearest Neighbors  
-  - Support Vector Machine  
-  - Random Forest  
-  - Multi-Layer Perceptron  
+## Repository structure
 
-- **Evaluation**: 5-fold cross-validation + holdout sets  
-- **Feature selection**: Random Forest → top 50 informative genes per dataset  
-- **Consensus panel**: 28 recurrent genes across datasets  
-- **Cross-dataset generalization**: train on one dataset, test on others (restricted to 70 shared genes)  
-- **Champion models**: hyperparameter-tuned pipelines on four representative datasets → applied to anonymized external test files.
+```
+.
+├── notebook/
+│   └── scrna_hypoxia.ipynb   Exploratory, unsupervised and supervised analysis
+├── assets/                   Figures used in this README
+└── LICENSE
+```
 
----
+## Data
 
-## 🌍 Motivation
-
-Cancer is one of the leading causes of mortality worldwide, driven by complex biological processes.  
-**Hypoxia**—low oxygen in the tumor microenvironment—promotes disease progression, treatment resistance, and poor outcomes.  
-
-Identifying hypoxic cells is therefore crucial.  
-This project asks:  
-👉 *Can we computationally identify hypoxic cells based on gene expression?*  
-
-By applying **Artificial Intelligence** to biomedical data, this work illustrates how new technologies can advance medicine and support precision oncology.
-
----
-
-## 📂 Data Availability
-
-The datasets used in this project (single-cell RNA-seq from MCF7 and HCC1806 cell lines) are **not included in this repository** due to licensing and sharing restrictions.
-
-To reproduce the analysis:
-- Contact the dataset providers or refer to the original publications.
-- Alternatively, replace the file paths in the notebooks with your own scRNA-seq data.
-
-The provided **notebooks** contain the full preprocessing, analysis, and modeling pipeline and can be adapted to similar datasets.
-
-## ▶️ Running the notebook
-
-Place the data files (e.g. `HCC1806_SmartS_Filtered_Data.txt`, `MCF7_SmartS_MetaData.tsv`) in `notebook/`, next to the notebook, then:
+The datasets are not included in this repository because of sharing restrictions. To run the notebook, place the data files (e.g. `HCC1806_SmartS_Filtered_Data.txt`, `MCF7_SmartS_MetaData.tsv`) in `notebook/`, next to the notebook:
 
 ```bash
 pip install numpy pandas scipy scikit-learn matplotlib seaborn matplotlib-venn jupyter
-cd notebook && jupyter notebook AI-LAB.ipynb
+cd notebook && jupyter notebook scrna_hypoxia.ipynb
 ```
-
