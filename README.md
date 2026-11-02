@@ -1,5 +1,7 @@
 # Gene Expression & Hypoxia Classification
 
+Group project for the *AI Lab* course, Bocconi University (2025). My main responsibility was the unsupervised analysis: dimensionality reduction (PCA, t-SNE) and clustering (K-means, agglomerative, Gaussian mixtures, DBSCAN, spectral), evaluated against the hypoxia labels with the adjusted Rand index, silhouette scores and contingency tables.
+
 This project investigates whether **hypoxic** (low oxygen) and **normoxic** cells can be distinguished using single-cell RNA sequencing data and machine learning approaches.
 
 ---
@@ -11,8 +13,8 @@ The datasets come from two human breast cancer cell lines:
 - **HCC1806** → basal subtype  
 
 Data were generated with two scRNA-seq technologies:
-- **SMART-seq**
-- **DROP-seq**
+- **Smart-seq** (plate-based, full-length transcripts)
+- **Drop-seq** (droplet-based, high throughput)
 
 For each combination, three dataset versions are provided:
 1. **Unfiltered** → raw count matrices, no preprocessing.  
@@ -70,4 +72,13 @@ To reproduce the analysis:
 - Alternatively, replace the file paths in the notebooks with your own scRNA-seq data.
 
 The provided **notebooks** contain the full preprocessing, analysis, and modeling pipeline and can be adapted to similar datasets.
+
+## ▶️ Running the notebook
+
+Place the data files (e.g. `HCC1806_SmartS_Filtered_Data.txt`, `MCF7_SmartS_MetaData.tsv`) in `notebook/`, next to the notebook, then:
+
+```bash
+pip install numpy pandas scipy scikit-learn matplotlib seaborn matplotlib-venn jupyter
+cd notebook && jupyter notebook AI-LAB.ipynb
+```
 
